@@ -53,10 +53,6 @@ export class TrayManager {
     // Subscribe to Monerod state change, convert to necessary data for Menu
     this.moneroD.state$.pipe(distinctUntilChanged())
       .subscribe((state) => {
-        // console.log(state)
-        // console.log(!this.test)
-        // this.menuItems[2].label = String(!this.test)
-        // this.test = !this.test
         this.trayDataSubject.next({
           isBusySyncing: state.isBusySyncing,
           databaseSize: state.databaseSize,
