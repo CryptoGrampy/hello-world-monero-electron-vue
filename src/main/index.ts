@@ -1,5 +1,7 @@
 import path from 'path'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Tray, Menu, nativeImage } from 'electron'
+import { Monerod } from './monerod'
+import { TrayManager } from './tray'
 
 app.disableHardwareAcceleration()
 
@@ -9,24 +11,28 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow | null = null
+let moneroD = new Monerod()
 
 async function bootstrap() {
-  win = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, '../preload/index.cjs'),
-    },
-  })
+  // win = new BrowserWindow({
+  //   webPreferences: {
+  //     preload: path.join(__dirname, '../preload/index.cjs'),
+  //   },
+  // })
+  await moneroD.initDaemon()
+  const trayManager = new TrayManager(moneroD)
+  // note: your contextMenu, Tooltip and Title code will go here!
 
-  if (app.isPackaged) {
-    win.loadFile(path.join(__dirname, '../renderer/index.html'))
-  } else {
-    const pkg = await import('../../package.json')
-    const url = `http://${pkg.env.HOST || '127.0.0.1'}:${pkg.env.PORT}`
+  // if (app.isPackaged) {
+  //   win.loadFile(path.join(__dirname, '../renderer/index.html'))
+  // } else {
+  //   const pkg = await import('../../package.json')
+  //   const url = `http://${pkg.env.HOST || '127.0.0.1'}:${pkg.env.PORT}`
 
-    win.loadURL(url)
-    win.maximize()
-    win.webContents.openDevTools()
-  }
+  //   win.loadURL(url)
+  //   win.maximize()
+  //   win.webContents.openDevTools()
+  // }
 }
 
 app.whenReady().then(bootstrap)

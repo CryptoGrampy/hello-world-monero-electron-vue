@@ -12,6 +12,8 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "monero-javascript": "^0.5.8",
+    "rxjs": "^7.4.0",
     "vue": "^3.2.22"
   },
   "devDependencies": {
