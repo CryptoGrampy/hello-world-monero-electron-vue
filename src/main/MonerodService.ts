@@ -53,12 +53,12 @@ export class MonerodService {
     private readonly monerodLatestDataSubject: Subject<MoneroDaemonState> = new Subject();
     public daemon: any
     private getDaemonInfoRequest$?: Subscription
+    private getInfoInterval?: NodeJS.Timer
 
     // TODO Monerod startup stuff - config should be user editable and get saved to store
     private readonly config = [
         this.getMonerodFilepath(),
         "--no-igd",
-        "--hide-my-port",
         "--rpc-bind-port", "18089",
         "--rpc-bind-ip", "0.0.0.0",
         "--confirm-external-bind",
@@ -95,18 +95,28 @@ export class MonerodService {
         }
     }
 
-    private getDaemonInfo() {
+    private async getDaemonInfo() {
         // Using rxjs here to allow for unsubscribing / canceling outstanding requests before stopping Daemon
         // TODO: replace TS any type
-        this.getDaemonInfoRequest$ = timer(0, 10000).pipe(concatMapTo(from(this.daemon.getInfo()))).subscribe((data: any) => {
-            console.log(data)
+        // TODO: FIXME
+        // this.getDaemonInfoRequest$ = timer(0, 10000).pipe(concatMapTo(from(this.daemon.getInfo()))).subscribe((data: any) => {
+        //     console.log(data.state.numTxsPool)
+        //     this.monerodLatestDataSubject.next(data.state as MoneroDaemonState)
+        // })
+
+        this.getInfoInterval = setInterval(async () => {
+            const data = await this.daemon.getInfo()
             this.monerodLatestDataSubject.next(data.state as MoneroDaemonState)
-        })
+        }, 10000)
     }
 
     public async stopDaemon() {
         // TODO: Move stop tasks to a cleanup method?
-        this.getDaemonInfoRequest$?.unsubscribe()
+        // this.getDaemonInfoRequest$?.unsubscribe()
+
+        if (this.getInfoInterval) {
+            clearInterval(this.getInfoInterval)
+        }
 
         try {
             console.log('stopping daemon')

@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
+import path from 'path'
 import { MonerodService } from './MonerodService'
 import { TrayService } from './TrayService'
 
@@ -23,27 +24,24 @@ async function bootstrap() {
     await moneroService.startDaemon()
   }
 
-
-  // win = new BrowserWindow({
-  //   webPreferences: {
-  //     preload: path.join(__dirname, '../preload/index.cjs'),
-  //   },
-  // })
-
-
+  win = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, '../preload/index.cjs'),
+    },
+  })
 
   // note: your contextMenu, Tooltip and Title code will go here!
 
-  // if (app.isPackaged) {
-  //   win.loadFile(path.join(__dirname, '../renderer/index.html'))
-  // } else {
-  //   const pkg = await import('../../package.json')
-  //   const url = `http://${pkg.env.HOST || '127.0.0.1'}:${pkg.env.PORT}`
+  if (app.isPackaged) {
+    win.loadFile(path.join(__dirname, '../renderer/index.html'))
+  } else {
+    const pkg = await import('../../package.json')
+    const url = `http://${pkg.env.HOST || '127.0.0.1'}:${pkg.env.PORT}`
 
-  //   win.loadURL(url)monerodLatestData
-  //   win.maximize()
-  //   win.webContents.openDevTools()
-  // }
+    win.loadURL(url)
+    // win.maximize()
+    win.webContents.openDevTools()
+  }
 }
 
 app.whenReady().then(bootstrap)
@@ -62,6 +60,12 @@ app.on('second-instance', () => {
     win.focus()
   }
 })
+
+ipcMain.on('monero-message', (event, arg) => {
+    moneroService.monerodLatestData$.subscribe(data => {
+      event.reply('monero-reply', data)
+    })
+  })
 
 // @TODO
 // auto update
