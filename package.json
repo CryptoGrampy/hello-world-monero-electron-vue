@@ -1,9 +1,8 @@
 {
-  "name": "electron-vue-vite",
+  "name": "unnamed",
   "version": "0.0.1",
   "main": "dist/main/index.cjs",
-  "author": "草鞋没号 <308487730@qq.com>",
-  "license": "MIT",
+  "author": "CryptoGrampy",
   "scripts": {
     "dev": "node scripts/watch.mjs",
     "build": "node scripts/build.mjs"
@@ -15,8 +14,7 @@
     "electron-store": "^8.0.1",
     "monero-javascript": "^0.5.9",
     "rxjs": "^7.4.0",
-    "vue": "^3.2.22",
-    "yarn": "^1.22.17"
+    "vue": "^3.2.22"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.9.4",
