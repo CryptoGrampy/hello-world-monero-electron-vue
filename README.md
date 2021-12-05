@@ -3,7 +3,17 @@
 ## Run Setup
 
 ```bash
-yarn && yarn run dev
+# clone repo
+
+# update the config in src/main/MonerodService.ts (hardcoded at the moment)
+
+# install
+yarn 
+
+# run
+yarn dev
+
+# interact
 
 # 1. Set your monerod file directory
 # 2. Run 'Start Node' from System Tray
