@@ -12,9 +12,11 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "electron-store": "^8.0.1",
     "monero-javascript": "^0.5.8",
     "rxjs": "^7.4.0",
-    "vue": "^3.2.22"
+    "vue": "^3.2.22",
+    "yarn": "^1.22.17"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.9.4",
