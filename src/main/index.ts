@@ -40,7 +40,7 @@ async function bootstrap() {
 
     win.loadURL(url)
     // win.maximize()
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   }
 }
 
