@@ -1,10 +1,11 @@
-const monerojs = require("monero-javascript")
 import { dialog } from 'electron'
+const monerojs = require("monero-javascript")
 import { from, Observable, of, map, pipe, Subject, timer, concatMapTo, interval, Subscription } from 'rxjs'
 import ElectronStore from "electron-store";
 
 
 // Return object from monero-javascript getInfo().state
+// Consider moving to shared types.ts where front/backend can import 
 export interface MoneroDaemonState {
     adjustedTimestamp: number,
     numAltBlocks: number,
@@ -38,7 +39,7 @@ export interface MoneroDaemonState {
     difficulty: any
 }
 
-// Store user's Monerod settings via electron-store
+// Store user's Monerod settings via electron-store.
 interface MonerodStore {
     monerodStore: {
         filepath?: string
@@ -52,17 +53,21 @@ export class MonerodService {
     private readonly store = new ElectronStore<MonerodStore>()
     private readonly monerodLatestDataSubject: Subject<MoneroDaemonState> = new Subject();
     public daemon: any
-    private getDaemonInfoRequest$?: Subscription
-    private getInfoInterval?: NodeJS.Timer
+    // private getDaemonInfoRequest$?: Subscription
 
-    // TODO Monerod startup stuff - config should be user editable and get saved to store
+    private getInfoInterval?: NodeJS.Timer
+    private getIsConnectedInterval?: NodeJS.Timer
+
+    // TODO: Monerod startup stuff - config should be user editable and get saved to store
+    // TODO: Consider RPC-only connections to remote Monerod
     private readonly config = [
         this.getMonerodFilepath(),
         "--no-igd",
         "--rpc-bind-port", "18089",
         "--rpc-bind-ip", "0.0.0.0",
         "--confirm-external-bind",
-        "--prune-blockchain"
+        "--prune-blockchain",
+        "--db-sync-mode", "safe:sync"
     ];
 
     public get monerodLatestData$(): Observable<MoneroDaemonState> {
@@ -87,7 +92,8 @@ export class MonerodService {
 
             if (await this.daemon.isConnected()) {
                 // Start polling monerod for data
-                this.getDaemonInfo()
+                this.pollDaemonGetInfo()
+                this.pollDaemonGetIsConnected()
             }
 
         } catch (err) {
@@ -95,10 +101,10 @@ export class MonerodService {
         }
     }
 
-    private async getDaemonInfo() {
+    private async pollDaemonGetInfo() {
         // Using rxjs here to allow for unsubscribing / canceling outstanding requests before stopping Daemon
         // TODO: replace TS any type
-        // TODO: FIXME
+        // TODO: FIXME - research using promise with rxjs 'from'
         // this.getDaemonInfoRequest$ = timer(0, 10000).pipe(concatMapTo(from(this.daemon.getInfo()))).subscribe((data: any) => {
         //     console.log(data.state.numTxsPool)
         //     this.monerodLatestDataSubject.next(data.state as MoneroDaemonState)
@@ -110,9 +116,22 @@ export class MonerodService {
         }, 10000)
     }
 
+    private pollDaemonGetIsConnected () {
+        /**
+         * Check if Daemon connected, update subject, if not connected (i.e. http error response), update subject with offline
+         * OR perhaps use the error to push an empty or undefined object to the data stream rather than creating a new subject and let UI handle that
+         */
+
+         this.getIsConnectedInterval = setInterval(async () => {
+            const data = await this.daemon.isConnected()
+            console.log(data)
+        }, 10000)
+    }
+
     public async stopDaemon() {
         // TODO: Move stop tasks to a cleanup method?
         // this.getDaemonInfoRequest$?.unsubscribe()
+        // stop getConnectedPoll after disconnected
 
         if (this.getInfoInterval) {
             clearInterval(this.getInfoInterval)
@@ -127,7 +146,7 @@ export class MonerodService {
     }
 
     public async restartDaemon() {
-        // TODO: Add Restart
+        // TODO: Add Restart.  call stopDaemon, wait for stopped, call start Daemon
     }
 
     public async update(path?: string) {
@@ -149,7 +168,7 @@ export class MonerodService {
         return this.store.get('monerodStore.monerodFilepath')
     }
 
-    // Util method
+    // Util method- perhaps move this where both front/backend import
     public calcSyncPercentage(height: number, targetHeight: number): number {
         if (targetHeight > height) {
             return Number(((height / targetHeight) * 100).toFixed(1))

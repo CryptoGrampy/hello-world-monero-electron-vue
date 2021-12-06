@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import { DashboardService } from './DashboardService'
 import { MonerodService } from './MonerodService'
 import { TrayService } from './TrayService'
 
@@ -12,13 +13,14 @@ if (!app.requestSingleInstanceLock()) {
 
 let win: BrowserWindow | null = null
 let moneroService = new MonerodService()
+const dashboardService = new DashboardService()
 
 async function bootstrap() {
   if (moneroService.getMonerodFilepath() === undefined) {
     moneroService.askMonerodFilePath()
   }
 
-  const trayManager = new TrayService(moneroService)  
+  const trayManager = new TrayService(moneroService)
 
   if (trayManager.getAutostart() === true && moneroService.getMonerodFilepath() !== undefined) {
     await moneroService.startDaemon()
@@ -61,11 +63,30 @@ app.on('second-instance', () => {
   }
 })
 
-ipcMain.on('monero-message', (event, arg) => {
+ipcMain.on('get-monero-message', (event, arg) => {
     moneroService.monerodLatestData$.subscribe(data => {
-      event.reply('monero-reply', data)
+      event.reply('get-monero-reply', data)
     })
+})
+
+ipcMain.on('set-timer-message', (event, arg) => {
+  console.log(arg)
+  dashboardService.setTimer(arg)
+})
+
+ipcMain.on('get-timer-message', (event, arg) => {
+  dashboardService.timer$.subscribe(newTimer => {
+    event.reply('get-timer-message-reply', newTimer)
   })
+})
+
+ipcMain.on('set-monero-switch', async (event, arg) => {
+  if (arg === true) {
+    await moneroService.startDaemon()
+  } else if (arg === false) {
+    await moneroService.stopDaemon()
+  }
+})
 
 // @TODO
 // auto update

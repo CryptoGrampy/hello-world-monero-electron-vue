@@ -1,22 +1,28 @@
-# unnamed
+# Hello World Monero + Electron + Vue
 
-## Run Setup
+## What is this?
+
+This is a very basic / rough / messy and *incredibly* sloppy example of a desktop app that can interact with Monerod through the monero-javascript library, but it should be enough to get you running. The app leverages the new monerod binary interaction monero-javascript library and isn't without a few errors when starting/stopping the process. There are many, many bugs in this app.  
+
+PLEASE make sure to set the hardcoded config values before pressing the 'Start Monerod' button or you will almomst certainly mess up your lmdb.  Feel free to make pr's.  
+
+## Setup Instructions
 
 ```bash
-# clone repo
+# 1. clone repo
 
-# update the config in src/main/MonerodService.ts (hardcoded at the moment)
+# 2. update the config in src/main/MonerodService.ts (hardcoded currently)
 
-# install
-yarn 
+# 3. install
+yarn
 
-# run
+# 4. run the app (ensure you're using the latest Node.JS LTS- I recommend using nvm)
 yarn dev
 
-# interact
+# 5. specify the location of your monerod file ( you can set this later in the system tray menu
 
-# 1. Set your monerod file directory
-# 2. Run 'Start Node' from System Tray
+# 6. interact - run start / stop node from vue or from the system tray
+
 ```
 ## Directory
 
